@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday Aleena!</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <audio autoplay loop>
+        <source src="happy-birthday.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <div class="slideshow-container">
+        <div class="overlay"></div>
+        <div class="content">
+            <h1 class="glow-text">Happy 21st Birthday, Aleena!</h1>
+            <h2 class="heartbeat">Teameee</h2>
+            <p class="message">"Wishing you a day filled with love, laughter, and all the happiness in the world!
+
+You have always supported me, understood my feelings, and never given up on me. Your charming positivity, kind heart, and unwavering warmth make you truly special. Never stop believing in yourself—you are capable of achieving anything!
+
+"</p>
+            <div id="countdown"></div>
+            
+        </div>
+    </div>
+
+    <div id="balloons"></div>
+    <canvas id="fireworks"></canvas>
+
+    <div id="gallery" class="gallery-overlay">
+        <span class="close" onclick="closeGallery()">&times;</span>
+        <div class="gallery-content">
+            <img id="gallery-img" src="image1.jpg">
+            <button onclick="prevImage()">&#10094;</button>
+            <button onclick="nextImage()">&#10095;</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
