@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
         TELEGRAM_BOT_TOKEN: '7900988090:AAHj8y3ji9PdbJ3r7bvsyfFWvstRjCTk_e8', // !!! IMPORTANT: Replace with your bot token !!!
         TELEGRAM_CHAT_ID: '6130159483',   // !!! IMPORTANT: Replace with your chat ID !!!
         SECRET_LETTER_PASSWORD: 'cibinmon', // !!! IMPORTANT: Replace with your actual secret phrase !!!
-        PUZZLE_IMAGE_URL: 'https://via.placeholder.com/800x800/8A2BE2/FFFFFF?text=Jinimol+Puzzle+Image', // Replace with your actual puzzle image
+        PUZZLE_IMAGE_URL: 'https://raw.githubusercontent.com/cibinanoop/Birthday/refs/heads/main/assets/puzzle.jpg', // Replace with your actual puzzle image
         PUZZLE_COLUMNS: 3, // Number of columns for the puzzle grid
         PUZZLE_ROWS: 3,    // Number of rows for the puzzle grid
         RIDDLES: [
@@ -449,7 +449,7 @@ Time: ${new Date().toLocaleString()}
                 if (success) {
                     wishSenderNameInput.value = '';
                     birthdayWishTextInput.value = '';
-                    showConfirmationModal('Your wish has been sent to Cibin & Anandu!');
+                    showConfirmationModal('Your wish has been sent to Jinimol');
                     triggerConfetti();
                 } else {
                     alert('Failed to send your wish. Please try again.');
