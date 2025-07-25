@@ -1,0 +1,179 @@
+/* General Body and Font Styles */
+body {
+    font-family: 'Lato', sans-serif;
+    color: #333; /* Dark gray for general text */
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Hero Section Animations */
+.animate-fade-in-up {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 1s forwards ease-out;
+}
+
+.animate-fade-in-up.delay-200 {
+    animation-delay: 0.2s;
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-bounce {
+    animation: bounce 1s infinite alternate;
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/* Main Content Fade-in */
+.fade-in-content {
+    opacity: 0;
+    animation: fadeInContent 1s forwards ease-out;
+    animation-delay: 1s; /* Start after hero section fades out */
+}
+
+@keyframes fadeInContent {
+    to {
+        opacity: 1;
+    }
+}
+
+/* Hero Section Fade-out */
+#hero.fade-out {
+    animation: fadeOutHero 1s forwards ease-out;
+}
+
+@keyframes fadeOutHero {
+    to {
+        opacity: 0;
+        visibility: hidden;
+        height: 0; /* Collapse element after fading */
+        padding: 0;
+    }
+}
+
+/* Timeline Animations */
+.timeline-item {
+    opacity: 0;
+    transition: opacity 0.8s ease-out;
+}
+
+.timeline-item.animate-fade-in-right {
+    transform: translateX(-50px);
+    animation: fadeInRight 0.8s forwards ease-out;
+    animation-timeline: view();
+    animation-range: entry 25% cover 50%; /* Adjust as needed */
+}
+
+.timeline-item.animate-fade-in-left {
+    transform: translateX(50px);
+    animation: fadeInLeft 0.8s forwards ease-out;
+    animation-timeline: view();
+    animation-range: entry 25% cover 50%; /* Adjust as needed */
+}
+
+@keyframes fadeInRight {
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeInLeft {
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Secret Letter Fade-in */
+#secretLetterContent.animate-fade-in {
+    opacity: 0;
+    animation: fadeIn 0.8s forwards ease-out;
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+    }
+}
+
+
+/* Specific Loader Styles */
+.loader {
+    border: 8px solid #f3f3f3; /* Light grey */
+    border-top: 8px solid #a78bfa; /* Purple */
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Confirmation Modal Animations */
+.modal-content {
+    animation: modalPopIn 0.3s forwards ease-out;
+}
+
+@keyframes modalPopIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Style for file preview items */
+.file-preview-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background-color: #f1f5f9; /* Tailwind's slate-100 */
+    border-radius: 6px;
+    margin-bottom: 4px; /* Space between items */
+    font-size: 0.9em;
+    color: #334155; /* Tailwind's slate-700 */
+}
+
+.file-preview-item .remove-file {
+    background: none;
+    border: none;
+    color: #ef4444; /* Tailwind's red-500 */
+    font-size: 1.2em;
+    cursor: pointer;
+    margin-left: 10px;
+    padding: 0 5px;
+}
+
+.file-preview-item .remove-file:hover {
+    color: #dc2626; /* Tailwind's red-600 */
+}
+
+/* Hide spin buttons for number inputs (if any, good practice) */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
