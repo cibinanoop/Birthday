@@ -190,119 +190,178 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- 2. Puzzle Game Logic ---
+// --- 2. Puzzle Game Logic ---
     let puzzleImage = new Image();
     let puzzlePieces = [];
     let puzzleWidth, puzzleHeight, pieceWidth, pieceHeight;
     let isPuzzleSolved = false;
-    let selectedPiece = null; // For click-to-swap
+    let selectedPiece = null; // Stores the first piece clicked for a swap
 
+    // Ensure puzzle elements exist before trying to manipulate them
     if (puzzleCanvas && shufflePuzzleButton && puzzleSolvedMessage) {
-        const ctx = puzzleCanvas.getContext('2d');
+        const ctx = puzzleCanvas.getContext('2d'); // Get the 2D rendering context for the canvas
 
+        // When the puzzle image loads, initialize and shuffle the puzzle
         puzzleImage.onload = () => {
+            // Set canvas dimensions to match the image for drawing accuracy
             puzzleCanvas.width = puzzleImage.width;
             puzzleCanvas.height = puzzleImage.height;
             puzzleWidth = puzzleCanvas.width;
             puzzleHeight = puzzleCanvas.height;
+
+            // Calculate dimensions of each puzzle piece
             pieceWidth = puzzleWidth / CONFIG.PUZZLE_COLUMNS;
             pieceHeight = puzzleHeight / CONFIG.PUZZLE_ROWS;
 
-            initPuzzle();
-            shufflePuzzle();
+            initPuzzle();    // Create the initial pieces
+            shufflePuzzle(); // Randomize their positions
         };
+        // Set the source of the puzzle image from your configuration
         puzzleImage.src = CONFIG.PUZZLE_IMAGE_URL;
 
+        /**
+         * Initializes the puzzle pieces, creating an array of objects.
+         * Each object stores its original position (where it *should* be)
+         * and its current position (where it *is* on the shuffled canvas).
+         */
         function initPuzzle() {
-            puzzlePieces = [];
+            puzzlePieces = []; // Clear any existing pieces
             for (let r = 0; r < CONFIG.PUZZLE_ROWS; r++) {
                 for (let c = 0; c < CONFIG.PUZZLE_COLUMNS; c++) {
                     puzzlePieces.push({
-                        id: r * CONFIG.PUZZLE_COLUMNS + c, // Unique ID for each piece
-                        originalCol: c,
-                        originalRow: r,
-                        currentCol: c,
-                        currentRow: r
+                        id: r * CONFIG.PUZZLE_COLUMNS + c, // Unique ID for each piece (0 to total_pieces-1)
+                        originalCol: c,                    // The correct column for this piece
+                        originalRow: r,                    // The correct row for this piece
+                        currentCol: c,                     // Its current column (initially correct)
+                        currentRow: r                      // Its current row (initially correct)
                     });
                 }
             }
-            isPuzzleSolved = false; // Reset solved state
+            isPuzzleSolved = false; // Reset the solved state
         }
 
+        /**
+         * Shuffles the puzzle by randomly reassigning the 'currentCol' and 'currentRow'
+         * properties among the pieces.
+         */
         function shufflePuzzle() {
-            // Shuffle the current positions (col, row)
+            // Iterate backwards to ensure efficient swapping without re-shuffling already processed items
             for (let i = puzzlePieces.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                // Swap current positions (col, row) of pieces i and j
-                // This swaps the actual `currentCol` and `currentRow` properties of the piece objects
+                const j = Math.floor(Math.random() * (i + 1)); // Pick a random index from 0 to i
+
+                // Swap the current positions (col, row) of piece i and piece j
+                // This effectively shuffles where each *original* piece is currently located
                 [puzzlePieces[i].currentCol, puzzlePieces[i].currentRow,
                  puzzlePieces[j].currentCol, puzzlePieces[j].currentRow] =
                 [puzzlePieces[j].currentCol, puzzlePieces[j].currentRow,
                  puzzlePieces[i].currentCol, puzzlePieces[i].currentRow];
             }
-            selectedPiece = null; // Clear any selected piece
+            selectedPiece = null; // Clear any piece that might have been selected before shuffling
             isPuzzleSolved = false;
-            puzzleSolvedMessage.classList.add('hidden');
-            drawPuzzle();
+            puzzleSolvedMessage.classList.add('hidden'); // Hide the solved message
+            drawPuzzle(); // Redraw the shuffled puzzle
         }
 
-        // --- PASTE THE FIX CODE HERE ---
-
+        /**
+         * Draws the current state of the puzzle pieces onto the canvas.
+         * Pieces are drawn based on their 'original' source rectangle on the image
+         * and their 'current' destination rectangle on the canvas.
+         */
         function drawPuzzle() {
-            ctx.clearRect(0, 0, puzzleWidth, puzzleHeight);
+            ctx.clearRect(0, 0, puzzleWidth, puzzleHeight); // Clear the entire canvas
             puzzlePieces.forEach(piece => {
-                const sourceX = piece.originalCol * pieceWidth;
-                const sourceY = piece.originalRow * pieceHeight;
-                const destX = piece.currentCol * pieceWidth; // Use current position for drawing
-                const destY = piece.currentRow * pieceHeight; // Use current position for drawing
+                const sourceX = piece.originalCol * pieceWidth;   // X-coordinate on the original image
+                const sourceY = piece.originalRow * pieceHeight;  // Y-coordinate on the original image
+                const destX = piece.currentCol * pieceWidth;      // X-coordinate on the canvas where it's drawn
+                const destY = piece.currentRow * pieceHeight;     // Y-coordinate on the canvas where it's drawn
 
+                // Draw a slice of the original image to its current position on the canvas
                 ctx.drawImage(
                     puzzleImage,
-                    sourceX, sourceY, pieceWidth, pieceHeight, // Source rectangle on original image
-                    destX, destY, pieceWidth, pieceHeight      // Destination rectangle on canvas
+                    sourceX, sourceY, pieceWidth, pieceHeight, // Source rectangle (x, y, width, height)
+                    destX, destY, pieceWidth, pieceHeight      // Destination rectangle (x, y, width, height)
                 );
 
-                // If this piece is selected, draw a highlight
+                // If this piece is currently selected, draw a yellow highlight around it
                 if (selectedPiece && selectedPiece.id === piece.id) {
-                    ctx.strokeStyle = 'rgba(255, 255, 0, 0.8)'; // Yellow highlight
-                    ctx.lineWidth = 4;
-                    ctx.strokeRect(destX, destY, pieceWidth, pieceHeight);
+                    ctx.strokeStyle = 'rgba(255, 255, 0, 0.8)'; // Yellow, semi-transparent
+                    ctx.lineWidth = 4; // Thickness of the border
+                    ctx.strokeRect(destX, destY, pieceWidth, pieceHeight); // Draw border around the piece
                 }
             });
         }
 
-        puzzleCanvas.addEventListener('click', (event) => {
-            if (isPuzzleSolved) return;
+        /**
+         * Normalizes event coordinates (for both mouse and touch) to the canvas's internal pixel dimensions.
+         * This accounts for CSS scaling of the canvas element.
+         * @param {Event} event - The mouse or touch event object.
+         * @param {DOMRect} canvasRect - The bounding client rect of the canvas.
+         * @param {number} canvasWidth - The intrinsic width of the canvas (puzzleCanvas.width).
+         * @param {number} canvasHeight - The intrinsic height of the canvas (puzzleCanvas.height).
+         * @returns {{mouseX: number, mouseY: number}} - Object with x and y coordinates relative to canvas.
+         */
+        function getEventCoords(event, canvasRect, canvasWidth, canvasHeight) {
+            let clientX, clientY;
+            if (event.touches && event.touches.length > 0) {
+                // For touch events, use the coordinates of the first touch point
+                clientX = event.touches[0].clientX;
+                clientY = event.touches[0].clientY;
+            } else {
+                // For mouse events, use clientX/Y directly
+                clientX = event.clientX;
+                clientY = event.clientY;
+            }
 
-            const rect = puzzleCanvas.getBoundingClientRect();
-            // Calculate coordinates relative to the canvas, accounting for scaling
-            const scaleX = puzzleCanvas.width / rect.width;
-            const scaleY = puzzleCanvas.height / rect.height;
-            const mouseX = (event.clientX - rect.left) * scaleX;
-            const mouseY = (event.clientY - rect.top) * scaleY;
+            // Calculate scaling factors if the CSS size is different from the canvas's internal size
+            const scaleX = canvasWidth / canvasRect.width;
+            const scaleY = canvasHeight / canvasRect.height;
 
+            // Adjust client coordinates to be relative to the canvas and scaled
+            const mouseX = (clientX - canvasRect.left) * scaleX;
+            const mouseY = (clientY - canvasRect.top) * scaleY;
+
+            return { mouseX, mouseY };
+        }
+
+        /**
+         * Main handler for both mouse (mousedown) and touch (touchstart) events on the puzzle canvas.
+         * It manages selecting pieces and swapping them.
+         * @param {Event} event - The triggered event object.
+         */
+        function handlePuzzleInteraction(event) {
+            // Prevent default browser actions (like scrolling/zooming on mobile touch)
+            event.preventDefault();
+
+            if (isPuzzleSolved) return; // Do nothing if the puzzle is already solved
+
+            const rect = puzzleCanvas.getBoundingClientRect(); // Get current size and position of canvas
+            // Get normalized coordinates from the event
+            const { mouseX, mouseY } = getEventCoords(event, rect, puzzleCanvas.width, puzzleCanvas.height);
+
+            // Determine which grid cell was clicked/tapped
             const clickedCol = Math.floor(mouseX / pieceWidth);
             const clickedRow = Math.floor(mouseY / pieceHeight);
 
-            // Find the piece that is CURRENTLY at the clicked grid position
+            // Find the puzzle piece that is CURRENTLY occupying the clicked grid position
             const clickedPiece = puzzlePieces.find(p =>
                 p.currentCol === clickedCol && p.currentRow === clickedRow
             );
 
             if (clickedPiece) {
                 if (!selectedPiece) {
-                    // First piece selected
+                    // If no piece is currently selected, select this one
                     selectedPiece = clickedPiece;
                 } else if (selectedPiece.id !== clickedPiece.id) {
-                    // Second piece selected, perform swap
+                    // If a different piece is already selected, perform the swap
 
-                    // Find the actual piece objects based on their current grid positions
-                    // This is more robust than relying on the temporary 'selectedPiece' object
+                    // It's important to find the actual piece objects from the main array
+                    // using their IDs, as 'selectedPiece' might be a stale reference if the
+                    // array was re-filtered or re-ordered somewhere else (though not in this code).
                     const piece1 = puzzlePieces.find(p => p.id === selectedPiece.id);
                     const piece2 = puzzlePieces.find(p => p.id === clickedPiece.id);
 
                     if (piece1 && piece2) {
-                        // Swap current positions (col, row) of the two pieces
+                        // Swap the 'currentCol' and 'currentRow' properties of the two pieces
                         const tempCol = piece1.currentCol;
                         const tempRow = piece1.currentRow;
 
@@ -313,31 +372,40 @@ document.addEventListener('DOMContentLoaded', () => {
                         piece2.currentRow = tempRow;
                     }
 
-                    selectedPiece = null; // Deselect
-                    drawPuzzle();
-                    checkPuzzleSolved();
-                } else { // Clicked the same piece again
-                    selectedPiece = null; // Deselect
+                    selectedPiece = null; // Deselect both pieces after swap
+                    drawPuzzle(); // Redraw the canvas to show the swapped pieces
+                    checkPuzzleSolved(); // Check if the puzzle is now solved
+                } else {
+                    // If the same piece was clicked twice, deselect it
+                    selectedPiece = null;
                 }
             }
             drawPuzzle(); // Always redraw to update highlights or after a swap
-        });
+        }
 
+        // Add event listeners for both mouse and touch interactions
+        puzzleCanvas.addEventListener('mousedown', handlePuzzleInteraction);
+        puzzleCanvas.addEventListener('touchstart', handlePuzzleInteraction);
+
+        // Event listener for the shuffle button (remains click-based)
         shufflePuzzleButton.addEventListener('click', shufflePuzzle);
 
+        /**
+         * Checks if the puzzle is in its solved state.
+         * A puzzle is solved if every piece's 'current' position matches its 'original' position.
+         */
         function checkPuzzleSolved() {
+            // The 'every()' method returns true if the callback returns true for all elements
             isPuzzleSolved = puzzlePieces.every(piece =>
                 piece.currentCol === piece.originalCol && piece.currentRow === piece.originalRow
             );
 
             if (isPuzzleSolved) {
                 console.log("Puzzle Solved!");
-                puzzleSolvedMessage.classList.remove('hidden');
-                triggerConfetti();
+                puzzleSolvedMessage.classList.remove('hidden'); // Show the success message
+                triggerConfetti(); // Trigger confetti celebration
             }
         }
-
-        // --- END OF FIX CODE SECTION ---
     }
 
     // --- 3. Mystery Gift Unlocker Logic ---
