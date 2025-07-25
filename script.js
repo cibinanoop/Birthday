@@ -234,6 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
             for (let i = puzzlePieces.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 // Swap current positions (col, row) of pieces i and j
+                // This swaps the actual `currentCol` and `currentRow` properties of the piece objects
                 [puzzlePieces[i].currentCol, puzzlePieces[i].currentRow,
                  puzzlePieces[j].currentCol, puzzlePieces[j].currentRow] =
                 [puzzlePieces[j].currentCol, puzzlePieces[j].currentRow,
@@ -245,13 +246,15 @@ document.addEventListener('DOMContentLoaded', () => {
             drawPuzzle();
         }
 
+        // --- PASTE THE FIX CODE HERE ---
+
         function drawPuzzle() {
             ctx.clearRect(0, 0, puzzleWidth, puzzleHeight);
             puzzlePieces.forEach(piece => {
                 const sourceX = piece.originalCol * pieceWidth;
                 const sourceY = piece.originalRow * pieceHeight;
-                const destX = piece.currentCol * pieceWidth;
-                const destY = piece.currentRow * pieceHeight;
+                const destX = piece.currentCol * pieceWidth; // Use current position for drawing
+                const destY = piece.currentRow * pieceHeight; // Use current position for drawing
 
                 ctx.drawImage(
                     puzzleImage,
@@ -272,29 +275,43 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isPuzzleSolved) return;
 
             const rect = puzzleCanvas.getBoundingClientRect();
-            const mouseX = event.clientX - rect.left;
-            const mouseY = event.clientY - rect.top;
+            // Calculate coordinates relative to the canvas, accounting for scaling
+            const scaleX = puzzleCanvas.width / rect.width;
+            const scaleY = puzzleCanvas.height / rect.height;
+            const mouseX = (event.clientX - rect.left) * scaleX;
+            const mouseY = (event.clientY - rect.top) * scaleY;
 
             const clickedCol = Math.floor(mouseX / pieceWidth);
             const clickedRow = Math.floor(mouseY / pieceHeight);
 
+            // Find the piece that is CURRENTLY at the clicked grid position
             const clickedPiece = puzzlePieces.find(p =>
                 p.currentCol === clickedCol && p.currentRow === clickedRow
             );
 
             if (clickedPiece) {
                 if (!selectedPiece) {
+                    // First piece selected
                     selectedPiece = clickedPiece;
                 } else if (selectedPiece.id !== clickedPiece.id) {
-                    // Swap current positions (col, row)
-                    const tempCol = selectedPiece.currentCol;
-                    const tempRow = selectedPiece.currentRow;
+                    // Second piece selected, perform swap
 
-                    selectedPiece.currentCol = clickedPiece.currentCol;
-                    selectedPiece.currentRow = clickedPiece.currentRow;
+                    // Find the actual piece objects based on their current grid positions
+                    // This is more robust than relying on the temporary 'selectedPiece' object
+                    const piece1 = puzzlePieces.find(p => p.id === selectedPiece.id);
+                    const piece2 = puzzlePieces.find(p => p.id === clickedPiece.id);
 
-                    clickedPiece.currentCol = tempCol;
-                    clickedPiece.currentRow = tempRow;
+                    if (piece1 && piece2) {
+                        // Swap current positions (col, row) of the two pieces
+                        const tempCol = piece1.currentCol;
+                        const tempRow = piece1.currentRow;
+
+                        piece1.currentCol = piece2.currentCol;
+                        piece1.currentRow = piece2.currentRow;
+
+                        piece2.currentCol = tempCol;
+                        piece2.currentRow = tempRow;
+                    }
 
                     selectedPiece = null; // Deselect
                     drawPuzzle();
@@ -303,7 +320,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     selectedPiece = null; // Deselect
                 }
             }
-            drawPuzzle(); // Always redraw to update highlights
+            drawPuzzle(); // Always redraw to update highlights or after a swap
         });
 
         shufflePuzzleButton.addEventListener('click', shufflePuzzle);
@@ -319,8 +336,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 triggerConfetti();
             }
         }
-    }
 
+        // --- END OF FIX CODE SECTION ---
+    }
 
     // --- 3. Mystery Gift Unlocker Logic ---
     let currentRiddleIndex = 0;
